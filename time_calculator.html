@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Time Calculator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box;}
+
+    body{
+      min-height:100vh;
+      background: linear-gradient(125deg, #1a0533 0%, #0d1b4b 40%, #0a2a1a 100%);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      font-family:'Inter',sans-serif;color:#fff;padding:30px 16px;
+      position:relative;overflow-x:hidden;
+    }
+
+    /* Animated blobs */
+    body::before{
+      content:'';position:fixed;width:500px;height:500px;
+      background:radial-gradient(circle,rgba(139,92,246,0.25) 0%,transparent 70%);
+      top:-100px;left:-100px;border-radius:50%;animation:blob1 8s infinite alternate ease-in-out;z-index:0;
+    }
+    body::after{
+      content:'';position:fixed;width:400px;height:400px;
+      background:radial-gradient(circle,rgba(6,182,212,0.18) 0%,transparent 70%);
+      bottom:-80px;right:-80px;border-radius:50%;animation:blob2 10s infinite alternate ease-in-out;z-index:0;
+    }
+    @keyframes blob1{0%{transform:translate(0,0) scale(1);}100%{transform:translate(60px,80px) scale(1.2);}}
+    @keyframes blob2{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-50px,-60px) scale(1.15);}}
+
+    h1{
+      font-size:12px;letter-spacing:4px;text-transform:uppercase;
+      color:rgba(196,181,253,0.8);margin-bottom:28px;position:relative;z-index:1;
+      text-shadow:0 0 20px rgba(139,92,246,0.5);
+    }
+
+    /* Glass Card */
+    .clock-card, .card{
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.12);
+      backdrop-filter:blur(24px) saturate(180%);
+      -webkit-backdrop-filter:blur(24px) saturate(180%);
+      border-radius:28px;
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.15),
+        inset 0 -1px 0 rgba(0,0,0,0.1);
+      position:relative;z-index:1;
+      transition:transform 0.3s, box-shadow 0.3s;
+    }
+    .clock-card:hover,.card:hover{
+      transform:translateY(-3px);
+      box-shadow:0 16px 48px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .clock-card{padding:32px 56px;text-align:center;margin-bottom:24px;min-width:340px;}
+    .card{padding:28px 32px;width:100%;max-width:480px;margin-bottom:24px;}
+    .card h2{text-align:center;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(196,181,253,0.7);margin-bottom:22px;font-weight:500;}
+
+    .lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,0.7);margin-bottom:10px;}
+
+    #live-time{
+      font-size:62px;font-weight:700;letter-spacing:5px;
+      background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    #live-period{
+      font-size:22px;font-weight:600;margin-left:8px;
+      background:linear-gradient(135deg,#a78bfa,#06b6d4);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      vertical-align:super;
+    }
+    #live-date{font-size:16px;color:rgba(196,181,253,0.8);margin-top:10px;font-weight:300;letter-spacing:1px;}
+    #live-day{font-size:11px;color:rgba(139,92,246,0.8);margin-top:5px;letter-spacing:3px;text-transform:uppercase;}
+
+    .section-lbl{font-size:10px;color:rgba(196,181,253,0.6);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;font-weight:500;}
+
+    .time-inputs{display:flex;gap:8px;align-items:flex-end;margin-bottom:18px;}
+    .ti{display:flex;flex-direction:column;flex:1;}
+    .ti label{font-size:9px;color:rgba(139,92,246,0.7);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
+
+    .ti input,.ti select{
+      padding:11px 8px;border-radius:12px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.07);
+      backdrop-filter:blur(8px);
+      color:#fff;font-size:15px;font-family:'Inter',sans-serif;
+      outline:none;text-align:center;width:100%;
+      transition:all 0.3s;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .ti input:focus,.ti select:focus{
+      border-color:rgba(167,139,250,0.6);
+      background:rgba(167,139,250,0.1);
+      box-shadow:0 0 0 3px rgba(139,92,246,0.15),inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .ti select option{background:#1a0533;color:#fff;}
+    .ampm-sel{flex:0 0 78px;}
+
+    .btn-row{display:flex;gap:10px;margin-top:6px;}
+    button{
+      flex:1;padding:12px;border:none;border-radius:14px;
+      cursor:pointer;font-size:13px;font-weight:600;
+      font-family:'Inter',sans-serif;
+      transition:all 0.3s;letter-spacing:0.5px;
+    }
+    .btn-p{
+      background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(167,139,250,0.9));
+      color:#fff;
+      border:1px solid rgba(167,139,250,0.3);
+      box-shadow:0 4px 15px rgba(124,58,237,0.3);
+      backdrop-filter:blur(8px);
+    }
+    .btn-p:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 25px rgba(124,58,237,0.5);
+      background:linear-gradient(135deg,rgba(124,58,237,1),rgba(167,139,250,1));
+    }
+    .btn-r{
+      background:rgba(255,255,255,0.06);
+      color:rgba(196,181,253,0.8);
+      border:1px solid rgba(255,255,255,0.1);
+      backdrop-filter:blur(8px);
+    }
+    .btn-r:hover{background:rgba(255,255,255,0.12);border-color:rgba(167,139,250,0.3);}
+
+    .result-box{
+      margin-top:18px;
+      background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(6,182,212,0.08));
+      border:1px solid rgba(167,139,250,0.2);
+      border-radius:16px;padding:16px 18px;display:none;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .big-result{
+      text-align:center;font-size:34px;font-weight:700;
+      background:linear-gradient(135deg,#fff,#a78bfa);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      padding:6px 0 2px;letter-spacing:3px;
+    }
+    .big-sub{text-align:center;font-size:10px;color:rgba(139,92,246,0.7);letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;}
+    .rrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:rgba(255,255,255,0.7);}
+    .rrow:last-child{border-bottom:none;}
+    .rv{font-weight:600;color:#a78bfa;}
+
+    #saved-banner{
+      background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(6,182,212,0.1));
+      border:1px solid rgba(167,139,250,0.25);border-radius:12px;
+      padding:9px 14px;font-size:12px;color:rgba(196,181,253,0.9);
+      margin-bottom:16px;display:none;justify-content:space-between;align-items:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    /* Date inputs */
+    input[type="date"]{text-align:left !important;padding:11px 14px !important;color-scheme:dark;}
+    input[type="number"]::-webkit-inner-spin-button{opacity:0.3;}
+  </style>
+</head>
+<body>
+<h1>⏱ Time & Date Calculator</h1>
+
+<!-- Live Clock -->
+<div class="clock-card">
+  <div class="lbl">Live Clock</div>
+  <div><span id="live-time">--:--:--</span><span id="live-period">AM</span></div>
+  <div id="live-date">Loading...</div>
+  <div id="live-day">...</div>
+</div>
+
+<!-- Time Difference with AM/PM for BOTH times -->
+<div class="card">
+  <h2>🕐 Time Between Two Times</h2>
+
+  <div class="section-lbl" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>Start Time</span>
+    <button class="btn-r" style="flex:none;padding:5px 12px;font-size:11px;border-radius:8px;" onclick="saveStartTime()">💾 Save Time</button>
+  </div>
+  <div class="time-inputs">
+    <div class="ti"><label>HH</label><input type="number" id="s-h" min="1" max="12" value="12"/></div>
+    <div class="ti"><label>MM</label><input type="number" id="s-m" min="0" max="59" value="00"/></div>
+    <div class="ti"><label>SS</label><input type="number" id="s-s" min="0" max="59" value="00"/></div>
+    <div class="ti ampm-sel"><label>AM / PM</label>
+      <select id="s-p"><option value="AM">AM</option><option value="PM">PM</option></select>
+    </div>
+  </div>
+
+  <div id="saved-banner" style="display:none;background:rgba(124,58,237,0.25);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:8px 14px;font-size:12px;color:#c4b5fd;margin-bottom:14px;display:none;justify-content:space-between;align-items:center;">
+    <span>💾 Saved: <strong id="saved-display" style="color:#a78bfa;">--</strong></span>
+    <button class="btn-r" style="flex:none;padding:4px 10px;font-size:11px;border-radius:8px;" onclick="loadSavedTime()">⟳ Restore</button>
+  </div>
+  <div class="section-lbl" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>End Time</span>
+    <button class="btn-r" style="flex:none;padding:5px 12px;font-size:11px;border-radius:8px;" onclick="setCurrentTime()">⟳ Use Current Time</button>
+  </div>
+  <div class="time-inputs">
+    <div class="ti"><label>HH</label><input type="number" id="e-h" min="1" max="12" value="12"/></div>
+    <div class="ti"><label>MM</label><input type="number" id="e-m" min="0" max="59" value="00"/></div>
+    <div class="ti"><label>SS</label><input type="number" id="e-s" min="0" max="59" value="00"/></div>
+    <div class="ti ampm-sel"><label>AM / PM</label>
+      <select id="e-p"><option value="AM">AM</option><option value="PM">PM</option></select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-p" onclick="calcTime()">Calculate</button>
+    <button class="btn-r" onclick="resetTime()">Reset</button>
+  </div>
+
+  <div class="result-box" id="t-result">
+    <div class="big-result" id="t-main">-- : -- : --</div>
+    <div class="big-sub">Hours : Minutes : Seconds difference</div>
+    <div class="rrow"><span>Total Hours</span><span class="rv" id="t-h">—</span></div>
+    <div class="rrow"><span>Total Minutes</span><span class="rv" id="t-m">—</span></div>
+    <div class="rrow"><span>Total Seconds</span><span class="rv" id="t-s">—</span></div>
+    <div class="rrow"><span>Spans Midnight?</span><span class="rv" id="t-mid">—</span></div>
+  </div>
+</div>
+
+<!-- Date Diff -->
+<div class="card">
+  <h2>📅 Days Between Two Dates</h2>
+  <div style="display:flex;gap:14px;">
+    <div class="ti"><label>Start Date</label><input type="date" id="d-start" style="text-align:left;padding:10px 12px;"/></div>
+    <div class="ti"><label>End Date</label><input type="date" id="d-end" style="text-align:left;padding:10px 12px;"/></div>
+  </div>
+  <div class="btn-row" style="margin-top:14px;">
+    <button class="btn-p" onclick="calcDate()">Calculate</button>
+    <button class="btn-r" onclick="resetDate()">Reset</button>
+  </div>
+  <div class="result-box" id="dd-result">
+    <div class="rrow"><span>Total Days</span><span class="rv" id="dd-d">—</span></div>
+    <div class="rrow"><span>Weeks</span><span class="rv" id="dd-w">—</span></div>
+    <div class="rrow"><span>Months (approx.)</span><span class="rv" id="dd-mo">—</span></div>
+    <div class="rrow"><span>Years (approx.)</span><span class="rv" id="dd-y">—</span></div>
+  </div>
+</div>
+
+<script>
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function pad(n){return String(n).padStart(2,'0');}
+
+  function updateClock(){
+    const now=new Date();
+    let h=now.getHours();
+    const m=pad(now.getMinutes()),s=pad(now.getSeconds());
+    const period=h>=12?'PM':'AM';
+    h=h%12||12;
+    document.getElementById('live-time').textContent=pad(h)+':'+m+':'+s;
+    document.getElementById('live-period').textContent=period;
+    document.getElementById('live-date').textContent=MONTHS[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+    document.getElementById('live-day').textContent=DAYS[now.getDay()];
+  }
+  setInterval(updateClock,1000); updateClock();
+
+  const now=new Date();
+  let ch=now.getHours(), cm=now.getMinutes(), cs=now.getSeconds();
+  const cp=ch>=12?'PM':'AM'; ch=ch%12||12;
+  ['s','e','b'].forEach(id=>{
+    document.getElementById(id+'-h').value=ch;
+    document.getElementById(id+'-m').value=pad(cm);
+    document.getElementById(id+'-s').value=pad(cs);
+    document.getElementById(id+'-p').value=cp;
+  });
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('d-start').value=today;
+  document.getElementById('d-end').value=today;
+
+  function to24(h,m,s,p){
+    h=parseInt(h); m=parseInt(m); s=parseInt(s);
+    if(p==='AM'&&h===12)h=0;
+    if(p==='PM'&&h!==12)h+=12;
+    return h*3600+m*60+s;
+  }
+  function secTo12(total){
+    total=((total%86400)+86400)%86400;
+    const h24=Math.floor(total/3600), m=Math.floor((total%3600)/60), s=total%60;
+    const p=h24>=12?'PM':'AM', h12=h24%12||12;
+    return pad(h12)+':'+pad(m)+':'+pad(s)+' '+p;
+  }
+
+  function calcTime(){
+    const st=to24(document.getElementById('s-h').value,document.getElementById('s-m').value,document.getElementById('s-s').value,document.getElementById('s-p').value);
+    const en=to24(document.getElementById('e-h').value,document.getElementById('e-m').value,document.getElementById('e-s').value,document.getElementById('e-p').value);
+    let diff=en-st, mid=false;
+    if(diff<0){diff+=86400;mid=true;}
+    const h=Math.floor(diff/3600),m=Math.floor((diff%3600)/60),s=diff%60;
+    document.getElementById('t-main').textContent=pad(h)+' : '+pad(m)+' : '+pad(s);
+    document.getElementById('t-h').textContent=h+' hrs';
+    document.getElementById('t-m').textContent=(h*60+m)+' mins';
+    document.getElementById('t-s').textContent=diff+' secs';
+    document.getElementById('t-mid').textContent=mid?'Yes (crosses midnight)':'No';
+    document.getElementById('t-result').style.display='block';
+  }
+  function resetTime(){
+    ['s','e'].forEach(id=>{
+      document.getElementById(id+'-h').value=ch;
+      document.getElementById(id+'-m').value=pad(cm);
+      document.getElementById(id+'-s').value=pad(cs);
+      document.getElementById(id+'-p').value=cp;
+    });
+    document.getElementById('t-result').style.display='none';
+  }
+
+  function addSub(sign){
+    const base=to24(document.getElementById('b-h').value,document.getElementById('b-m').value,document.getElementById('b-s').value,document.getElementById('b-p').value);
+    const dur=parseInt(document.getElementById('d-h').value||0)*3600+parseInt(document.getElementById('d-m').value||0)*60+parseInt(document.getElementById('d-s').value||0);
+    document.getElementById('as-main').textContent=secTo12(base+sign*dur);
+    document.getElementById('as-lbl').textContent=sign===1?'⏩ After Addition':'⏪ After Subtraction';
+    document.getElementById('as-result').style.display='block';
+  }
+  function resetAS(){
+    document.getElementById('b-h').value=ch;
+    document.getElementById('b-m').value=pad(cm);
+    document.getElementById('b-s').value=pad(cs);
+    document.getElementById('b-p').value=cp;
+    document.getElementById('d-h').value=0;
+    document.getElementById('d-m').value=0;
+    document.getElementById('d-s').value=0;
+    document.getElementById('as-result').style.display='none';
+  }
+
+  function calcDate(){
+    const s=new Date(document.getElementById('d-start').value);
+    const e=new Date(document.getElementById('d-end').value);
+    if(isNaN(s)||isNaN(e))return;
+    const days=Math.floor(Math.abs(e-s)/(1000*60*60*24));
+    document.getElementById('dd-d').textContent=days+' days';
+    document.getElementById('dd-w').textContent=(days/7).toFixed(1)+' weeks';
+    document.getElementById('dd-mo').textContent=(days/30.44).toFixed(1)+' months';
+    document.getElementById('dd-y').textContent=(days/365.25).toFixed(2)+' years';
+    document.getElementById('dd-result').style.display='block';
+  }
+  function resetDate(){
+    document.getElementById('d-start').value=today;
+    document.getElementById('d-end').value=today;
+    document.getElementById('dd-result').style.display='none';
+  }
+
+  function setCurrentTime(){
+    const n=new Date();
+    let h=n.getHours(), m=n.getMinutes(), s=n.getSeconds();
+    const p=h>=12?'PM':'AM'; h=h%12||12;
+    document.getElementById('e-h').value=h;
+    document.getElementById('e-m').value=pad(m);
+    document.getElementById('e-s').value=pad(s);
+    document.getElementById('e-p').value=p;
+  }
+
+  function saveStartTime(){
+    const h=document.getElementById('s-h').value;
+    const m=document.getElementById('s-m').value;
+    const s=document.getElementById('s-s').value;
+    const p=document.getElementById('s-p').value;
+    localStorage.setItem('savedTime', JSON.stringify({h,m,s,p}));
+    const banner=document.getElementById('saved-banner');
+    document.getElementById('saved-display').textContent=h+':'+pad(m)+':'+pad(s)+' '+p;
+    banner.style.display='flex';
+    banner.style.background='rgba(124,58,237,0.35)';
+    setTimeout(()=>{ banner.style.background='rgba(124,58,237,0.25)'; },600);
+  }
+  function loadSavedTime(){
+    const data=localStorage.getItem('savedTime');
+    if(!data) return;
+    const t=JSON.parse(data);
+    document.getElementById('s-h').value=t.h;
+    document.getElementById('s-m').value=t.m;
+    document.getElementById('s-s').value=t.s;
+    document.getElementById('s-p').value=t.p;
+  }
+  // Load saved on page open
+  window.addEventListener('load',()=>{
+    const data=localStorage.getItem('savedTime');
+    if(data){
+      const t=JSON.parse(data);
+      document.getElementById('saved-display').textContent=t.h+':'+pad(t.m)+':'+pad(t.s)+' '+t.p;
+      document.getElementById('saved-banner').style.display='flex';
+    }
+  });
+</script>
+</body>
+</html>
