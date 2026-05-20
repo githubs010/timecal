@@ -1,384 +1,964 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Time Calculator</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeFlow | Premium Glassmorphic Time & Date Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float-1': 'float1 12s ease-in-out infinite',
+                        'float-2': 'float2 16s ease-in-out infinite 2s',
+                    },
+                    keyframes: {
+                        float1: {
+                            '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+                            '50%': { transform: 'translateY(-24px) scale(1.05)' },
+                        },
+                        float2: {
+                            '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+                            '50%': { transform: 'translateY(20px) scale(1.08)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
 
-    body{
-      min-height:100vh;
-      background: linear-gradient(125deg, #1a0533 0%, #0d1b4b 40%, #0a2a1a 100%);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      font-family:'Inter',sans-serif;color:#fff;padding:30px 16px;
-      position:relative;overflow-x:hidden;
-    }
+        /* Hourglass Flow Animations */
+        #top-sand, #bottom-sand {
+            transition: y 2.5s cubic-bezier(0.4, 0, 0.2, 1), height 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes trickle {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -24; }
+        }
+        
+        .pouring #sand-stream {
+            opacity: 0.85 !important;
+            animation: trickle 0.6s linear infinite;
+        }
 
-    /* Animated blobs */
-    body::before{
-      content:'';position:fixed;width:500px;height:500px;
-      background:radial-gradient(circle,rgba(139,92,246,0.25) 0%,transparent 70%);
-      top:-100px;left:-100px;border-radius:50%;animation:blob1 8s infinite alternate ease-in-out;z-index:0;
-    }
-    body::after{
-      content:'';position:fixed;width:400px;height:400px;
-      background:radial-gradient(circle,rgba(6,182,212,0.18) 0%,transparent 70%);
-      bottom:-80px;right:-80px;border-radius:50%;animation:blob2 10s infinite alternate ease-in-out;z-index:0;
-    }
-    @keyframes blob1{0%{transform:translate(0,0) scale(1);}100%{transform:translate(60px,80px) scale(1.2);}}
-    @keyframes blob2{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-50px,-60px) scale(1.15);}}
+        /* Glass refract container styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px) saturate(190%);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(167, 139, 250, 0.25);
+            box-shadow: 0 30px 60px -20px rgba(124, 58, 237, 0.15),
+                        0 20px 40px -15px rgba(0, 0, 0, 0.6),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
 
-    h1{
-      font-size:12px;letter-spacing:4px;text-transform:uppercase;
-      color:rgba(196,181,253,0.8);margin-bottom:28px;position:relative;z-index:1;
-      text-shadow:0 0 20px rgba(139,92,246,0.5);
-    }
+        /* Ambient glowing cursor spotlight */
+        .spotlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(300px circle at var(--x) var(--y), rgba(139, 92, 246, 0.12), transparent 80%);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .glass-card:hover .spotlight {
+            opacity: 1;
+        }
 
-    /* Glass Card */
-    .clock-card, .card{
-      background:rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.12);
-      backdrop-filter:blur(24px) saturate(180%);
-      -webkit-backdrop-filter:blur(24px) saturate(180%);
-      border-radius:28px;
-      box-shadow:
-        0 8px 32px rgba(0,0,0,0.4),
-        inset 0 1px 0 rgba(255,255,255,0.15),
-        inset 0 -1px 0 rgba(0,0,0,0.1);
-      position:relative;z-index:1;
-      transition:transform 0.3s, box-shadow 0.3s;
-    }
-    .clock-card:hover,.card:hover{
-      transform:translateY(-3px);
-      box-shadow:0 16px 48px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);
-    }
-
-    .clock-card{padding:32px 56px;text-align:center;margin-bottom:24px;min-width:340px;}
-    .card{padding:28px 32px;width:100%;max-width:480px;margin-bottom:24px;}
-    .card h2{text-align:center;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(196,181,253,0.7);margin-bottom:22px;font-weight:500;}
-
-    .lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,0.7);margin-bottom:10px;}
-
-    #live-time{
-      font-size:62px;font-weight:700;letter-spacing:5px;
-      background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
-    #live-period{
-      font-size:22px;font-weight:600;margin-left:8px;
-      background:linear-gradient(135deg,#a78bfa,#06b6d4);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-      vertical-align:super;
-    }
-    #live-date{font-size:16px;color:rgba(196,181,253,0.8);margin-top:10px;font-weight:300;letter-spacing:1px;}
-    #live-day{font-size:11px;color:rgba(139,92,246,0.8);margin-top:5px;letter-spacing:3px;text-transform:uppercase;}
-
-    .section-lbl{font-size:10px;color:rgba(196,181,253,0.6);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;font-weight:500;}
-
-    .time-inputs{display:flex;gap:8px;align-items:flex-end;margin-bottom:18px;}
-    .ti{display:flex;flex-direction:column;flex:1;}
-    .ti label{font-size:9px;color:rgba(139,92,246,0.7);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
-
-    .ti input,.ti select{
-      padding:11px 8px;border-radius:12px;
-      border:1px solid rgba(255,255,255,0.1);
-      background:rgba(255,255,255,0.07);
-      backdrop-filter:blur(8px);
-      color:#fff;font-size:15px;font-family:'Inter',sans-serif;
-      outline:none;text-align:center;width:100%;
-      transition:all 0.3s;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
-    }
-    .ti input:focus,.ti select:focus{
-      border-color:rgba(167,139,250,0.6);
-      background:rgba(167,139,250,0.1);
-      box-shadow:0 0 0 3px rgba(139,92,246,0.15),inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-    .ti select option{background:#1a0533;color:#fff;}
-    .ampm-sel{flex:0 0 78px;}
-
-    .btn-row{display:flex;gap:10px;margin-top:6px;}
-    button{
-      flex:1;padding:12px;border:none;border-radius:14px;
-      cursor:pointer;font-size:13px;font-weight:600;
-      font-family:'Inter',sans-serif;
-      transition:all 0.3s;letter-spacing:0.5px;
-    }
-    .btn-p{
-      background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(167,139,250,0.9));
-      color:#fff;
-      border:1px solid rgba(167,139,250,0.3);
-      box-shadow:0 4px 15px rgba(124,58,237,0.3);
-      backdrop-filter:blur(8px);
-    }
-    .btn-p:hover{
-      transform:translateY(-2px);
-      box-shadow:0 8px 25px rgba(124,58,237,0.5);
-      background:linear-gradient(135deg,rgba(124,58,237,1),rgba(167,139,250,1));
-    }
-    .btn-r{
-      background:rgba(255,255,255,0.06);
-      color:rgba(196,181,253,0.8);
-      border:1px solid rgba(255,255,255,0.1);
-      backdrop-filter:blur(8px);
-    }
-    .btn-r:hover{background:rgba(255,255,255,0.12);border-color:rgba(167,139,250,0.3);}
-
-    .result-box{
-      margin-top:18px;
-      background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(6,182,212,0.08));
-      border:1px solid rgba(167,139,250,0.2);
-      border-radius:16px;padding:16px 18px;display:none;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
-    }
-    .big-result{
-      text-align:center;font-size:34px;font-weight:700;
-      background:linear-gradient(135deg,#fff,#a78bfa);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-      padding:6px 0 2px;letter-spacing:3px;
-    }
-    .big-sub{text-align:center;font-size:10px;color:rgba(139,92,246,0.7);letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;}
-    .rrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:rgba(255,255,255,0.7);}
-    .rrow:last-child{border-bottom:none;}
-    .rv{font-weight:600;color:#a78bfa;}
-
-    #saved-banner{
-      background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(6,182,212,0.1));
-      border:1px solid rgba(167,139,250,0.25);border-radius:12px;
-      padding:9px 14px;font-size:12px;color:rgba(196,181,253,0.9);
-      margin-bottom:16px;display:none;justify-content:space-between;align-items:center;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
-    }
-
-    /* Date inputs */
-    input[type="date"]{text-align:left !important;padding:11px 14px !important;color-scheme:dark;}
-    input[type="number"]::-webkit-inner-spin-button{opacity:0.3;}
-  </style>
+        /* Custom style adjustments for range/inputs compatibility */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
-<body>
-<h1>⏱ Time & Date Calculator</h1>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans overflow-x-hidden relative flex flex-col justify-between selection:bg-purple-500/30">
 
-<!-- Live Clock -->
-<div class="clock-card">
-  <div class="lbl">Live Clock</div>
-  <div><span id="live-time">--:--:--</span><span id="live-period">AM</span></div>
-  <div id="live-date">Loading...</div>
-  <div id="live-day">...</div>
-</div>
+    <div class="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-violet-900/10 blur-[130px] animate-float-1 pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-15%] right-[-5%] w-[45vw] h-[45vw] rounded-full bg-fuchsia-900/10 blur-[120px] animate-float-2 pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] left-[30%] w-[35vw] h-[35vw] rounded-full bg-cyan-900/10 blur-[150px] animate-float-1 pointer-events-none z-0"></div>
 
-<!-- Time Difference with AM/PM for BOTH times -->
-<div class="card">
-  <h2>🕐 Time Between Two Times</h2>
+    <!-- Header / Navigation -->
+    <header class="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex items-center space-x-3 group">
+            <div class="w-10 h-10 rounded-xl glass-card flex items-center justify-center border-white/20 hover:scale-105 transition-transform">
+                <i data-lucide="clock" class="w-5 h-5 text-purple-400 animate-pulse-slow"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-slate-300 group-hover:from-white group-hover:to-purple-400 transition-all duration-300">
+                    TimeFlow
+                </h1>
+                <span class="text-[10px] tracking-widest uppercase text-purple-400 font-semibold">Calculator Suite</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs bg-purple-500/10 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Web Engine Ready
+            </span>
+        </div>
+    </header>
 
-  <div class="section-lbl" style="display:flex;justify-content:space-between;align-items:center;">
-    <span>Start Time</span>
-    <button class="btn-r" style="flex:none;padding:5px 12px;font-size:11px;border-radius:8px;" onclick="saveStartTime()">💾 Save Time</button>
-  </div>
-  <div class="time-inputs">
-    <div class="ti"><label>HH</label><input type="number" id="s-h" min="1" max="12" value="12"/></div>
-    <div class="ti"><label>MM</label><input type="number" id="s-m" min="0" max="59" value="00"/></div>
-    <div class="ti"><label>SS</label><input type="number" id="s-s" min="0" max="59" value="00"/></div>
-    <div class="ti ampm-sel"><label>AM / PM</label>
-      <select id="s-p"><option value="AM">AM</option><option value="PM">PM</option></select>
-    </div>
-  </div>
+    <main class="relative z-10 w-full max-w-7xl mx-auto px-4 py-4 flex flex-col gap-6 flex-grow">
+        
+        <!-- Live Clock Spotlight Jumbotron Banner -->
+        <div class="glass-card relative rounded-3xl p-6 sm:p-8 overflow-hidden w-full flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="spotlight"></div>
+            <div class="relative z-10 text-center md:text-left">
+                <span class="text-[10px] uppercase tracking-widest text-purple-400 font-bold mb-1 block">Dynamic Live Precision Clock</span>
+                <div class="flex items-baseline justify-center md:justify-start">
+                    <span id="live-time" class="font-mono text-5xl sm:text-6xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">--:--:--</span>
+                    <span id="live-period" class="text-2xl font-bold ml-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AM</span>
+                </div>
+            </div>
+            <div class="relative z-10 text-center md:text-right border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8 flex flex-col justify-center min-w-[200px]">
+                <div id="live-date" class="text-lg font-semibold text-slate-200">Loading Calendar...</div>
+                <div id="live-day" class="text-xs tracking-widest uppercase text-purple-400 font-bold mt-1">Fetching Day...</div>
+            </div>
+        </div>
 
-  <div id="saved-banner" style="display:none;background:rgba(124,58,237,0.25);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:8px 14px;font-size:12px;color:#c4b5fd;margin-bottom:14px;display:none;justify-content:space-between;align-items:center;">
-    <span>💾 Saved: <strong id="saved-display" style="color:#a78bfa;">--</strong></span>
-    <button class="btn-r" style="flex:none;padding:4px 10px;font-size:11px;border-radius:8px;" onclick="loadSavedTime()">⟳ Restore</button>
-  </div>
-  <div class="section-lbl" style="display:flex;justify-content:space-between;align-items:center;">
-    <span>End Time</span>
-    <button class="btn-r" style="flex:none;padding:5px 12px;font-size:11px;border-radius:8px;" onclick="setCurrentTime()">⟳ Use Current Time</button>
-  </div>
-  <div class="time-inputs">
-    <div class="ti"><label>HH</label><input type="number" id="e-h" min="1" max="12" value="12"/></div>
-    <div class="ti"><label>MM</label><input type="number" id="e-m" min="0" max="59" value="00"/></div>
-    <div class="ti"><label>SS</label><input type="number" id="e-s" min="0" max="59" value="00"/></div>
-    <div class="ti ampm-sel"><label>AM / PM</label>
-      <select id="e-p"><option value="AM">AM</option><option value="PM">PM</option></select>
-    </div>
-  </div>
+        <!-- 2x2 Grid for Advanced Tools -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            
+            <!-- TOOL 1: Time Difference Between Two Times -->
+            <div class="glass-card relative rounded-3xl p-6 overflow-hidden flex flex-col justify-between min-h-[460px]">
+                <div class="spotlight"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                        <h2 class="font-bold text-base flex items-center gap-2 text-slate-100">
+                            <i data-lucide="arrow-right-left" class="w-4 h-4 text-purple-400"></i> Time Between Two Times
+                        </h2>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Durations & Offsets</span>
+                    </div>
 
-  <div class="btn-row">
-    <button class="btn-p" onclick="calcTime()">Calculate</button>
-    <button class="btn-r" onclick="resetTime()">Reset</button>
-  </div>
+                    <!-- Quick Shift Timings Presets Selector -->
+                    <div class="mb-4">
+                        <span class="text-[10px] uppercase tracking-widest text-purple-400/80 font-bold mb-2 block">Quick Shift Presets</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="applyShift(6, 0, 0, 'AM', 2, 0, 0, 'PM')" class="bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-purple-500/10 py-2 px-1 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition duration-200 flex flex-col items-center gap-0.5 shadow-sm">
+                                <span class="text-[8px] opacity-70 tracking-wider">MORNING</span>
+                                <span>6 AM - 2 PM</span>
+                            </button>
+                            <button onclick="applyShift(9, 0, 0, 'AM', 5, 0, 0, 'PM')" class="bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-purple-500/10 py-2 px-1 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition duration-200 flex flex-col items-center gap-0.5 shadow-sm">
+                                <span class="text-[8px] opacity-70 tracking-wider">GENERAL</span>
+                                <span>9 AM - 5 PM</span>
+                            </button>
+                            <button onclick="applyShift(3, 0, 0, 'PM', 11, 0, 0, 'PM')" class="bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-purple-500/10 py-2 px-1 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition duration-200 flex flex-col items-center gap-0.5 shadow-sm">
+                                <span class="text-[8px] opacity-70 tracking-wider">EVENING</span>
+                                <span>3 PM - 11 PM</span>
+                            </button>
+                        </div>
+                    </div>
 
-  <div class="result-box" id="t-result">
-    <div class="big-result" id="t-main">-- : -- : --</div>
-    <div class="big-sub">Hours : Minutes : Seconds difference</div>
-    <div class="rrow"><span>Total Hours</span><span class="rv" id="t-h">—</span></div>
-    <div class="rrow"><span>Total Minutes</span><span class="rv" id="t-m">—</span></div>
-    <div class="rrow"><span>Total Seconds</span><span class="rv" id="t-s">—</span></div>
-    <div class="rrow"><span>Spans Midnight?</span><span class="rv" id="t-mid">—</span></div>
-  </div>
-</div>
+                    <!-- Start Time Control Deck -->
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-purple-300/80 uppercase font-semibold tracking-wider">Start Time</span>
+                        <button onclick="saveStartTime()" class="text-[10px] bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-purple-500/10 px-2.5 py-1 rounded-lg text-slate-300 hover:text-white transition duration-200 flex items-center gap-1">
+                            <i data-lucide="save" class="w-3 h-3"></i> Save Start
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Hour</label>
+                            <input type="number" id="s-h" min="1" max="12" value="12" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Min</label>
+                            <input type="number" id="s-m" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Sec</label>
+                            <input type="number" id="s-s" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Period</label>
+                            <select id="s-p" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none cursor-pointer">
+                                <option value="AM" class="bg-slate-900">AM</option>
+                                <option value="PM" class="bg-slate-900">PM</option>
+                            </select>
+                        </div>
+                    </div>
 
-<!-- Date Diff -->
-<div class="card">
-  <h2>📅 Days Between Two Dates</h2>
-  <div style="display:flex;gap:14px;">
-    <div class="ti"><label>Start Date</label><input type="date" id="d-start" style="text-align:left;padding:10px 12px;"/></div>
-    <div class="ti"><label>End Date</label><input type="date" id="d-end" style="text-align:left;padding:10px 12px;"/></div>
-  </div>
-  <div class="btn-row" style="margin-top:14px;">
-    <button class="btn-p" onclick="calcDate()">Calculate</button>
-    <button class="btn-r" onclick="resetDate()">Reset</button>
-  </div>
-  <div class="result-box" id="dd-result">
-    <div class="rrow"><span>Total Days</span><span class="rv" id="dd-d">—</span></div>
-    <div class="rrow"><span>Weeks</span><span class="rv" id="dd-w">—</span></div>
-    <div class="rrow"><span>Months (approx.)</span><span class="rv" id="dd-mo">—</span></div>
-    <div class="rrow"><span>Years (approx.)</span><span class="rv" id="dd-y">—</span></div>
-  </div>
-</div>
+                    <div id="saved-banner" class="hidden bg-purple-950/20 border border-purple-500/20 rounded-2xl p-3 mb-4 items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="bookmark" class="w-4 h-4 text-purple-400"></i>
+                            <span class="text-xs text-slate-300">Saved: <strong id="saved-display" class="text-purple-300 font-mono">--</strong></span>
+                        </div>
+                        <button onclick="loadSavedTime()" class="text-[10px] bg-purple-500/20 border border-purple-500/30 hover:bg-purple-500/40 px-2.5 py-1 rounded-lg text-white font-semibold transition duration-150 flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Restore Start
+                        </button>
+                    </div>
 
-<script>
-  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
-  function pad(n){return String(n).padStart(2,'0');}
+                    <!-- End Time Control Deck -->
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-purple-300/80 uppercase font-semibold tracking-wider">End Time</span>
+                        <button onclick="setCurrentTime()" class="text-[10px] bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-purple-500/10 px-2.5 py-1 rounded-lg text-slate-300 hover:text-white transition duration-200 flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Use Live
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 mb-6">
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Hour</label>
+                            <input type="number" id="e-h" min="1" max="12" value="12" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Min</label>
+                            <input type="number" id="e-m" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Sec</label>
+                            <input type="number" id="e-s" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Period</label>
+                            <select id="e-p" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none cursor-pointer">
+                                <option value="AM" class="bg-slate-900">AM</option>
+                                <option value="PM" class="bg-slate-900">PM</option>
+                            </select>
+                        </div>
+                    </div>
 
-  function updateClock(){
-    const now=new Date();
-    let h=now.getHours();
-    const m=pad(now.getMinutes()),s=pad(now.getSeconds());
-    const period=h>=12?'PM':'AM';
-    h=h%12||12;
-    document.getElementById('live-time').textContent=pad(h)+':'+m+':'+s;
-    document.getElementById('live-period').textContent=period;
-    document.getElementById('live-date').textContent=MONTHS[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
-    document.getElementById('live-day').textContent=DAYS[now.getDay()];
-  }
-  setInterval(updateClock,1000); updateClock();
+                    <!-- Action Trigger row -->
+                    <div class="flex gap-2.5">
+                        <button onclick="calcTime()" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-500/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider text-white shadow-lg shadow-purple-900/10 active:scale-95 transition-all duration-150 flex items-center justify-center gap-1.5">
+                            <i data-lucide="play" class="w-4 h-4"></i> Calculate
+                        </button>
+                        <button onclick="resetTime()" class="bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white px-5 py-3 rounded-2xl text-xs font-semibold border border-white/5 transition duration-150">
+                            Reset
+                        </button>
+                    </div>
+                </div>
 
-  const now=new Date();
-  let ch=now.getHours(), cm=now.getMinutes(), cs=now.getSeconds();
-  const cp=ch>=12?'PM':'AM'; ch=ch%12||12;
-  ['s','e','b'].forEach(id=>{
-    document.getElementById(id+'-h').value=ch;
-    document.getElementById(id+'-m').value=pad(cm);
-    document.getElementById(id+'-s').value=pad(cs);
-    document.getElementById(id+'-p').value=cp;
-  });
-  const today=new Date().toISOString().split('T')[0];
-  document.getElementById('d-start').value=today;
-  document.getElementById('d-end').value=today;
+                <!-- Clean Numeric Result Indicator (Dynamically color-coded based on 7h target) -->
+                <div id="t-result" class="hidden relative z-10 mt-6 bg-gradient-to-r from-purple-950/15 to-indigo-950/10 border border-purple-500/20 rounded-2xl p-5 transition-all duration-300">
+                    <div class="flex flex-col sm:flex-row items-center gap-6">
+                        <!-- Dynamic Color-coded Stopwatch Glyph -->
+                        <div id="t-icon-container" class="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 shadow-inner w-32 shrink-0 transition-all duration-300">
+                            <div class="relative w-20 h-20 flex items-center justify-center bg-purple-500/10 rounded-full border border-purple-500/20 transition-all duration-300">
+                                <i id="t-icon" data-lucide="clock" class="w-10 h-10 text-purple-400 animate-pulse-slow transition-colors duration-300"></i>
+                            </div>
+                            <span id="t-status-badge" class="text-[8px] uppercase tracking-widest text-purple-400 font-extrabold mt-2.5 transition-all duration-300">Measured!</span>
+                        </div>
+                        
+                        <!-- Numerical Data Column -->
+                        <div class="flex-grow w-full">
+                            <div id="t-main" class="font-mono text-4xl font-extrabold text-white tracking-widest bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-1 transition-all duration-300">00 : 00 : 00</div>
+                            <div class="text-[9px] uppercase tracking-wider text-slate-400 mb-4">Hours : Minutes : Seconds difference</div>
+                            
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-white/5 pt-3">
+                                <div class="flex justify-between items-center text-xs text-slate-300 border-b border-white/5 pb-2">
+                                    <span>Total Hours</span>
+                                    <span id="t-h" class="font-mono font-bold text-purple-400 transition-colors duration-300">—</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-300 border-b border-white/5 pb-2">
+                                    <span>Total Minutes</span>
+                                    <span id="t-m" class="font-mono font-bold text-purple-400 transition-colors duration-300">—</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-300 border-b border-white/5 pb-2">
+                                    <span>Total Seconds</span>
+                                    <span id="t-s" class="font-mono font-bold text-purple-400 transition-colors duration-300">—</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-300 border-b border-white/5 pb-2">
+                                    <span>Spans Midnight?</span>
+                                    <span id="t-mid" class="font-mono font-bold text-pink-400 transition-colors duration-300">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  function to24(h,m,s,p){
-    h=parseInt(h); m=parseInt(m); s=parseInt(s);
-    if(p==='AM'&&h===12)h=0;
-    if(p==='PM'&&h!==12)h+=12;
-    return h*3600+m*60+s;
-  }
-  function secTo12(total){
-    total=((total%86400)+86400)%86400;
-    const h24=Math.floor(total/3600), m=Math.floor((total%3600)/60), s=total%60;
-    const p=h24>=12?'PM':'AM', h12=h24%12||12;
-    return pad(h12)+':'+pad(m)+':'+pad(s)+' '+p;
-  }
+            <!-- TOOL 2: Add or Subtract Durations to/from Time (CONTAINS THE ANIMATED HOURGLASS) -->
+            <div class="glass-card relative rounded-3xl p-6 overflow-hidden flex flex-col justify-between min-h-[460px]">
+                <div class="spotlight"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                        <h2 class="font-bold text-base flex items-center gap-2 text-slate-100">
+                            <i data-lucide="plus-minus" class="w-4 h-4 text-purple-400"></i> Add / Subtract Time Duration
+                        </h2>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Time Shifts</span>
+                    </div>
 
-  function calcTime(){
-    const st=to24(document.getElementById('s-h').value,document.getElementById('s-m').value,document.getElementById('s-s').value,document.getElementById('s-p').value);
-    const en=to24(document.getElementById('e-h').value,document.getElementById('e-m').value,document.getElementById('e-s').value,document.getElementById('e-p').value);
-    let diff=en-st, mid=false;
-    if(diff<0){diff+=86400;mid=true;}
-    const h=Math.floor(diff/3600),m=Math.floor((diff%3600)/60),s=diff%60;
-    document.getElementById('t-main').textContent=pad(h)+' : '+pad(m)+' : '+pad(s);
-    document.getElementById('t-h').textContent=h+' hrs';
-    document.getElementById('t-m').textContent=(h*60+m)+' mins';
-    document.getElementById('t-s').textContent=diff+' secs';
-    document.getElementById('t-mid').textContent=mid?'Yes (crosses midnight)':'No';
-    document.getElementById('t-result').style.display='block';
-  }
-  function resetTime(){
-    ['s','e'].forEach(id=>{
-      document.getElementById(id+'-h').value=ch;
-      document.getElementById(id+'-m').value=pad(cm);
-      document.getElementById(id+'-s').value=pad(cs);
-      document.getElementById(id+'-p').value=cp;
-    });
-    document.getElementById('t-result').style.display='none';
-  }
+                    <!-- Base Time input controls -->
+                    <span class="text-xs text-purple-300/80 uppercase font-semibold tracking-wider block mb-2">Base Starting Time</span>
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Hour</label>
+                            <input type="number" id="b-h" min="1" max="12" value="12" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Min</label>
+                            <input type="number" id="b-m" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Sec</label>
+                            <input type="number" id="b-s" min="0" max="59" value="00" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Period</label>
+                            <select id="b-p" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none cursor-pointer">
+                                <option value="AM" class="bg-slate-900">AM</option>
+                                <option value="PM" class="bg-slate-900">PM</option>
+                            </select>
+                        </div>
+                    </div>
 
-  function addSub(sign){
-    const base=to24(document.getElementById('b-h').value,document.getElementById('b-m').value,document.getElementById('b-s').value,document.getElementById('b-p').value);
-    const dur=parseInt(document.getElementById('d-h').value||0)*3600+parseInt(document.getElementById('d-m').value||0)*60+parseInt(document.getElementById('d-s').value||0);
-    document.getElementById('as-main').textContent=secTo12(base+sign*dur);
-    document.getElementById('as-lbl').textContent=sign===1?'⏩ After Addition':'⏪ After Subtraction';
-    document.getElementById('as-result').style.display='block';
-  }
-  function resetAS(){
-    document.getElementById('b-h').value=ch;
-    document.getElementById('b-m').value=pad(cm);
-    document.getElementById('b-s').value=pad(cs);
-    document.getElementById('b-p').value=cp;
-    document.getElementById('d-h').value=0;
-    document.getElementById('d-m').value=0;
-    document.getElementById('d-s').value=0;
-    document.getElementById('as-result').style.display='none';
-  }
+                    <!-- Duration shift adjustments block -->
+                    <span class="text-xs text-purple-300/80 uppercase font-semibold tracking-wider block mb-2">Shift Duration</span>
+                    <div class="grid grid-cols-3 gap-2 mb-6">
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Hours</label>
+                            <input type="number" id="d-h" min="0" value="0" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Minutes</label>
+                            <input type="number" id="d-m" min="0" value="0" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-xl border border-white/5">
+                            <label class="block text-[8px] uppercase text-slate-400 tracking-wider mb-0.5">Seconds</label>
+                            <input type="number" id="d-s" min="0" value="0" class="w-full bg-transparent font-semibold text-center text-slate-100 focus:outline-none">
+                        </div>
+                    </div>
 
-  function calcDate(){
-    const s=new Date(document.getElementById('d-start').value);
-    const e=new Date(document.getElementById('d-end').value);
-    if(isNaN(s)||isNaN(e))return;
-    const days=Math.floor(Math.abs(e-s)/(1000*60*60*24));
-    document.getElementById('dd-d').textContent=days+' days';
-    document.getElementById('dd-w').textContent=(days/7).toFixed(1)+' weeks';
-    document.getElementById('dd-mo').textContent=(days/30.44).toFixed(1)+' months';
-    document.getElementById('dd-y').textContent=(days/365.25).toFixed(2)+' years';
-    document.getElementById('dd-result').style.display='block';
-  }
-  function resetDate(){
-    document.getElementById('d-start').value=today;
-    document.getElementById('d-end').value=today;
-    document.getElementById('dd-result').style.display='none';
-  }
+                    <!-- Action Trigger row -->
+                    <div class="flex gap-2.5">
+                        <button onclick="addSub(1)" class="flex-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-150 flex items-center justify-center gap-1.5">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Shift
+                        </button>
+                        <button onclick="addSub(-1)" class="flex-1 bg-pink-600/20 hover:bg-pink-600/30 text-pink-300 border border-pink-500/30 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-150 flex items-center justify-center gap-1.5">
+                            <i data-lucide="minus-circle" class="w-4 h-4"></i> Subtract Shift
+                        </button>
+                        <button onclick="resetAS()" class="bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white px-5 py-3 rounded-2xl text-xs font-semibold border border-white/5 transition duration-150">
+                            Reset
+                        </button>
+                    </div>
+                </div>
 
-  function setCurrentTime(){
-    const n=new Date();
-    let h=n.getHours(), m=n.getMinutes(), s=n.getSeconds();
-    const p=h>=12?'PM':'AM'; h=h%12||12;
-    document.getElementById('e-h').value=h;
-    document.getElementById('e-m').value=pad(m);
-    document.getElementById('e-s').value=pad(s);
-    document.getElementById('e-p').value=p;
-  }
+                <!-- Rich output structure with Dynamic Flipping Hourglass -->
+                <div id="as-result" class="hidden relative z-10 mt-6 bg-gradient-to-r from-purple-950/15 to-indigo-950/10 border border-purple-500/20 rounded-2xl p-5">
+                    <div class="flex flex-col sm:flex-row items-center gap-6">
+                        <!-- Glassmorphic Hourglass Column -->
+                        <div class="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 shadow-inner w-32 shrink-0">
+                            <div id="hourglass-wrapper" class="relative w-20 h-28 flex items-center justify-center transition-transform duration-[1000ms]">
+                                <!-- Hourglass SVG -->
+                                <svg width="72" height="108" viewBox="0 0 80 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <!-- Sand Purple-to-Pink Flow Gradient -->
+                                        <linearGradient id="sandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#c084fc" />
+                                            <stop offset="100%" stop-color="#db2777" />
+                                        </linearGradient>
+                                        
+                                        <!-- Funnel Clipping Paths -->
+                                        <clipPath id="topClip">
+                                            <path d="M12 15 C12 15 15 50 38 58 C39 59 41 59 42 58 C65 50 68 15 68 15 Z" />
+                                        </clipPath>
+                                        <clipPath id="bottomClip">
+                                            <path d="M12 105 C12 105 15 70 38 62 C39 61 41 61 42 62 C65 70 68 105 68 105 Z" />
+                                        </clipPath>
+                                    </defs>
 
-  function saveStartTime(){
-    const h=document.getElementById('s-h').value;
-    const m=document.getElementById('s-m').value;
-    const s=document.getElementById('s-s').value;
-    const p=document.getElementById('s-p').value;
-    localStorage.setItem('savedTime', JSON.stringify({h,m,s,p}));
-    const banner=document.getElementById('saved-banner');
-    document.getElementById('saved-display').textContent=h+':'+pad(m)+':'+pad(s)+' '+p;
-    banner.style.display='flex';
-    banner.style.background='rgba(124,58,237,0.35)';
-    setTimeout(()=>{ banner.style.background='rgba(124,58,237,0.25)'; },600);
-  }
-  function loadSavedTime(){
-    const data=localStorage.getItem('savedTime');
-    if(!data) return;
-    const t=JSON.parse(data);
-    document.getElementById('s-h').value=t.h;
-    document.getElementById('s-m').value=t.m;
-    document.getElementById('s-s').value=t.s;
-    document.getElementById('s-p').value=t.p;
-  }
-  // Load saved on page open
-  window.addEventListener('load',()=>{
-    const data=localStorage.getItem('savedTime');
-    if(data){
-      const t=JSON.parse(data);
-      document.getElementById('saved-display').textContent=t.h+':'+pad(t.m)+':'+pad(t.s)+' '+t.p;
-      document.getElementById('saved-banner').style.display='flex';
-    }
-  });
-</script>
+                                    <!-- Hourglass Frame Outer Stands -->
+                                    <rect x="5" y="4" width="70" height="8" rx="4" fill="rgba(255, 255, 255, 0.12)" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" />
+                                    <rect x="5" y="108" width="70" height="8" rx="4" fill="rgba(255, 255, 255, 0.12)" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" />
+                                    
+                                    <!-- Metallic Side Pillars -->
+                                    <line x1="10" y1="12" x2="10" y2="108" stroke="rgba(255, 255, 255, 0.1)" stroke-width="2.5" />
+                                    <line x1="70" y1="12" x2="70" y2="108" stroke="rgba(255, 255, 255, 0.1)" stroke-width="2.5" />
+
+                                    <!-- Main Glass Bulb Body -->
+                                    <path d="M12 15 C12 15 15 50 38 58 C39 59 41 59 42 58 C65 50 68 15 68 15 L68 105 C68 105 65 70 42 62 C41 61 39 61 38 62 C15 70 12 105 12 105 Z" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.5" />
+
+                                    <!-- Top Chamber Sand Body -->
+                                    <g clip-path="url(#topClip)">
+                                        <rect id="top-sand" x="10" y="15" width="60" height="45" fill="url(#sandGrad)" />
+                                    </g>
+
+                                    <!-- Bottom Chamber Sand Body -->
+                                    <g clip-path="url(#bottomClip)">
+                                        <rect id="bottom-sand" x="10" y="105" width="60" height="0" fill="url(#sandGrad)" />
+                                    </g>
+
+                                    <!-- Trickling Sand Stream -->
+                                    <line id="sand-stream" x1="40" y1="12" x2="40" y2="108" stroke="url(#sandGrad)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 4" class="opacity-0 transition-opacity duration-300" />
+                                </svg>
+                            </div>
+                            <span id="hourglass-status" class="text-[8px] uppercase tracking-widest text-purple-400 font-extrabold mt-2.5 transition-all duration-300">Measured!</span>
+                        </div>
+                        
+                        <!-- Numerical Data Column -->
+                        <div class="flex-grow w-full text-center sm:text-left">
+                            <div id="as-main" class="font-mono text-4xl sm:text-5xl font-extrabold text-white tracking-widest bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">-- : -- : -- --</div>
+                            <div id="as-lbl" class="text-[10px] uppercase tracking-widest text-purple-400 font-bold mt-1.5">Calculated Shift Result</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 3: Days Between Two Dates -->
+            <div class="glass-card relative rounded-3xl p-6 overflow-hidden flex flex-col justify-between min-h-[380px] lg:col-span-2">
+                <div class="spotlight"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                        <h2 class="font-bold text-base flex items-center gap-2 text-slate-100">
+                            <i data-lucide="calendar" class="w-4 h-4 text-purple-400"></i> Calendar Days Between Two Dates
+                        </h2>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Date Math</span>
+                    </div>
+
+                    <!-- Date control options -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-black/20 p-3.5 rounded-2xl border border-white/5">
+                            <label class="block text-[10px] uppercase text-purple-400 tracking-wider mb-1.5 font-bold">Start Date</label>
+                            <input type="date" id="d-start" class="w-full bg-transparent font-semibold text-slate-100 focus:outline-none cursor-pointer">
+                        </div>
+                        <div class="bg-black/20 p-3.5 rounded-2xl border border-white/5">
+                            <label class="block text-[10px] uppercase text-purple-400 tracking-wider mb-1.5 font-bold">End Date</label>
+                            <input type="date" id="d-end" class="w-full bg-transparent font-semibold text-slate-100 focus:outline-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Action Trigger row -->
+                    <div class="flex gap-2.5">
+                        <button onclick="calcDate()" class="flex-grow bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-500/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider text-white shadow-lg active:scale-95 transition-all duration-150 flex items-center justify-center gap-1.5">
+                            <i data-lucide="calendar-range" class="w-4 h-4"></i> Calculate Days Difference
+                        </button>
+                        <button onclick="resetDate()" class="bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white px-6 py-3 rounded-2xl text-xs font-semibold border border-white/5 transition duration-150">
+                            Reset Dates
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dd-result" class="hidden relative z-10 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gradient-to-r from-purple-950/15 to-indigo-950/10 border border-purple-500/20 rounded-2xl p-4">
+                    <div class="text-center p-2 border-r border-white/5">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Total Days</div>
+                        <div id="dd-d" class="font-mono text-xl font-bold text-purple-400 mt-1">—</div>
+                    </div>
+                    <div class="text-center p-2 sm:border-r border-white/5">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Weeks</div>
+                        <div id="dd-w" class="font-mono text-xl font-bold text-purple-400 mt-1">—</div>
+                    </div>
+                    <div class="text-center p-2 border-r border-white/5">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Months (approx)</div>
+                        <div id="dd-mo" class="font-mono text-xl font-bold text-purple-400 mt-1">—</div>
+                    </div>
+                    <div class="text-center p-2">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Years (approx)</div>
+                        <div id="dd-y" class="font-mono text-xl font-bold text-purple-400 mt-1">—</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-6 text-center border-t border-white/5 text-xs text-slate-500">
+        <p>&copy; 2026 TimeFlow Calculators. Precision design framework.</p>
+    </footer>
+
+    <script>
+        const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        function pad(n) { 
+            return String(n).padStart(2, '0'); 
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            const m = pad(now.getMinutes());
+            const s = pad(now.getSeconds());
+            const period = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            
+            document.getElementById('live-time').textContent = pad(h) + ':' + m + ':' + s;
+            document.getElementById('live-period').textContent = period;
+            document.getElementById('live-date').textContent = MONTHS[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+            document.getElementById('live-day').textContent = DAYS[now.getDay()];
+        }
+        setInterval(updateClock, 1000); 
+        updateClock();
+
+        // Establish page-wide variables for initialization default behaviors
+        const now = new Date();
+        let ch = now.getHours();
+        let cm = now.getMinutes();
+        let cs = now.getSeconds();
+        const cp = ch >= 12 ? 'PM' : 'AM'; 
+        ch = ch % 12 || 12;
+
+        // Initialize form fields correctly across s, e, and b (ensuring all exist beforehand)
+        ['s', 'e', 'b'].forEach(id => {
+            const elH = document.getElementById(id + '-h');
+            const elM = document.getElementById(id + '-m');
+            const elS = document.getElementById(id + '-s');
+            const elP = document.getElementById(id + '-p');
+            
+            if(elH) elH.value = ch;
+            if(elM) elM.value = pad(cm);
+            if(elS) elS.value = pad(cs);
+            if(elP) elP.value = cp;
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('d-start').value = today;
+        document.getElementById('d-end').value = today;
+
+        // Conversion helper registers
+        function to24(h, m, s, p) {
+            h = parseInt(h) || 0; 
+            m = parseInt(m) || 0; 
+            s = parseInt(s) || 0;
+            if (p === 'AM' && h === 12) h = 0;
+            if (p === 'PM' && h !== 12) h += 12;
+            return h * 3600 + m * 60 + s;
+        }
+
+        function secTo12(total) {
+            total = ((total % 86400) + 86400) % 86400;
+            const h24 = Math.floor(total / 3600);
+            const m = Math.floor((total % 3600) / 60);
+            const s = total % 60;
+            const p = h24 >= 12 ? 'PM' : 'AM';
+            const h12 = h24 % 12 || 12;
+            return pad(h12) + ':' + pad(m) + ':' + pad(s) + ' ' + p;
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const accentText = type === 'success' ? 'text-emerald-400' : 'text-purple-400';
+            const bgClass = 'border-purple-500/20 bg-slate-900/90';
+
+            toast.className = `glass-card ${bgClass} px-4 py-3 rounded-2xl border flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-4 pointer-events-auto`;
+            toast.innerHTML = `
+                <i data-lucide="info" class="w-4 h-4 ${accentText}"></i>
+                <span class="text-xs font-semibold">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 2500);
+        }
+
+        // Apply quick shift configuration
+        function applyShift(sh, sm, ss, sp, eh, em, es, ep) {
+            document.getElementById('s-h').value = sh;
+            document.getElementById('s-m').value = pad(sm);
+            document.getElementById('s-s').value = pad(ss);
+            document.getElementById('s-p').value = sp;
+
+            document.getElementById('e-h').value = eh;
+            document.getElementById('e-m').value = pad(em);
+            document.getElementById('e-s').value = pad(es);
+            document.getElementById('e-p').value = ep;
+
+            calcTime();
+            showToast("Shift preset applied!");
+        }
+
+        // Dynamically color-code results container based on target threshold
+        function updateTargetColorFeedback(secondsDiff) {
+            const resultBox = document.getElementById('t-result');
+            const iconContainer = document.getElementById('t-icon-container');
+            const iconEl = document.getElementById('t-icon');
+            const mainTimeEl = document.getElementById('t-main');
+            const statusBadge = document.getElementById('t-status-badge');
+            
+            // Clear current theme classes
+            resultBox.classList.remove(
+                'from-purple-950/15', 'to-indigo-950/10', 'border-purple-500/20',
+                'from-rose-950/20', 'to-red-950/10', 'border-rose-500/30',
+                'from-emerald-950/20', 'to-teal-950/10', 'border-emerald-500/30',
+                'from-sky-950/20', 'to-blue-950/10', 'border-sky-500/30'
+            );
+            iconContainer.className = 'flex flex-col items-center justify-center p-3.5 rounded-2xl bg-white/[0.02] border shadow-inner w-32 shrink-0 transition-all duration-300';
+            iconEl.className = 'w-10 h-10 animate-pulse-slow transition-colors duration-300';
+            mainTimeEl.className = 'font-mono text-4xl font-extrabold tracking-widest bg-gradient-to-r bg-clip-text text-transparent mb-1 transition-all duration-300';
+
+            const hText = document.getElementById('t-h');
+            const mText = document.getElementById('t-m');
+            const sText = document.getElementById('t-s');
+            const midText = document.getElementById('t-mid');
+
+            hText.className = "font-mono font-bold transition-colors duration-300";
+            mText.className = "font-mono font-bold transition-colors duration-300";
+            sText.className = "font-mono font-bold transition-colors duration-300";
+            midText.className = "font-mono font-bold transition-colors duration-300";
+
+            // TARGET COMPARISONS
+            // 7 hours = 25200 seconds
+            const targetSeconds = 25200;
+
+            if (secondsDiff === targetSeconds) {
+                // GREEN STATE (Exactly 7 hours)
+                resultBox.classList.add('from-emerald-950/20', 'to-teal-950/10', 'border-emerald-500/30');
+                iconContainer.classList.add('border-emerald-500/20');
+                iconEl.classList.add('text-emerald-400');
+                mainTimeEl.classList.add('from-white', 'to-emerald-200');
+                statusBadge.textContent = "Satisfied!";
+                statusBadge.className = "text-[9px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border text-emerald-400 bg-emerald-500/10 border-emerald-500/20 mt-2.5 transition-all duration-300";
+                
+                [hText, mText, sText, midText].forEach(el => el.classList.add('text-emerald-400'));
+            } else if (secondsDiff < targetSeconds) {
+                // RED STATE (Less than 7 hours)
+                resultBox.classList.add('from-rose-950/20', 'to-red-950/10', 'border-rose-500/30');
+                iconContainer.classList.add('border-rose-500/20');
+                iconEl.classList.add('text-rose-400');
+                mainTimeEl.classList.add('from-white', 'to-rose-200');
+                statusBadge.textContent = "Underhours";
+                statusBadge.className = "text-[9px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border text-rose-400 bg-rose-500/10 border-rose-500/20 mt-2.5 transition-all duration-300";
+
+                [hText, mText, sText, midText].forEach(el => el.classList.add('text-rose-400'));
+            } else {
+                // BLUE STATE (More than 7 hours)
+                resultBox.classList.add('from-sky-950/20', 'to-blue-950/10', 'border-sky-500/30');
+                iconContainer.classList.add('border-sky-500/20');
+                iconEl.classList.add('text-sky-400');
+                mainTimeEl.classList.add('from-white', 'to-sky-200');
+                statusBadge.textContent = "Overhours";
+                statusBadge.className = "text-[9px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border text-sky-400 bg-sky-500/10 border-sky-500/20 mt-2.5 transition-all duration-300";
+
+                [hText, mText, sText, midText].forEach(el => el.classList.add('text-sky-400'));
+            }
+        }
+
+        // TOOL 1 Core Function: Time Difference
+        function calcTime() {
+            const sH = document.getElementById('s-h').value;
+            const sM = document.getElementById('s-m').value;
+            const sS = document.getElementById('s-s').value;
+            const sP = document.getElementById('s-p').value;
+
+            const eH = document.getElementById('e-h').value;
+            const eM = document.getElementById('e-m').value;
+            const eS = document.getElementById('e-s').value;
+            const eP = document.getElementById('e-p').value;
+
+            const st = to24(sH, sM, sS, sP);
+            const en = to24(eH, eM, eS, eP);
+            
+            let diff = en - st;
+            let mid = false;
+            
+            if (diff < 0) {
+                diff += 86400;
+                mid = true;
+            }
+            
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = diff % 60;
+            
+            document.getElementById('t-main').textContent = pad(h) + ' : ' + pad(m) + ' : ' + pad(s);
+            document.getElementById('t-h').textContent = h + ' hrs';
+            document.getElementById('t-m').textContent = (h * 60 + m) + ' mins';
+            document.getElementById('t-s').textContent = diff + ' secs';
+            document.getElementById('t-mid').textContent = mid ? 'Yes (crosses midnight)' : 'No';
+            
+            const rBox = document.getElementById('t-result');
+            rBox.classList.remove('hidden');
+
+            // Apply color coding rules depending on target duration
+            updateTargetColorFeedback(diff);
+
+            showToast("Time difference calculated");
+        }
+
+        function resetTime() {
+            ['s', 'e'].forEach(id => {
+                document.getElementById(id + '-h').value = ch;
+                document.getElementById(id + '-m').value = pad(cm);
+                document.getElementById(id + '-s').value = pad(cs);
+                document.getElementById(id + '-p').value = cp;
+            });
+            document.getElementById('t-result').classList.add('hidden');
+            showToast("Time inputs reset", "info");
+        }
+
+        // TOOL 2 Core Function: Time Shifts Add/Subtract with dynamic rotating Hourglass
+        let currentRotation = 0;
+
+        function addSub(sign) {
+            const bH = document.getElementById('b-h').value;
+            const bM = document.getElementById('b-m').value;
+            const bS = document.getElementById('b-s').value;
+            const bP = document.getElementById('b-p').value;
+
+            const dH = parseInt(document.getElementById('d-h').value || 0);
+            const dM = parseInt(document.getElementById('d-m').value || 0);
+            const dS = parseInt(document.getElementById('d-s').value || 0);
+
+            const base = to24(bH, bM, bS, bP);
+            const dur = (dH * 3600) + (dM * 60) + dS;
+            
+            const resultSecs = base + (sign * dur);
+            
+            document.getElementById('as-main').textContent = secTo12(resultSecs);
+            document.getElementById('as-lbl').textContent = sign === 1 ? '⏩ After Shift Addition' : '⏪ After Shift Subtraction';
+            
+            const rBox = document.getElementById('as-result');
+            rBox.classList.remove('hidden');
+
+            // Select hourglass elements
+            const topSand = document.getElementById('top-sand');
+            const bottomSand = document.getElementById('bottom-sand');
+            const wrapper = document.getElementById('hourglass-wrapper');
+            const status = document.getElementById('hourglass-status');
+            const stream = document.getElementById('sand-stream');
+
+            // Reset current visual flow states
+            wrapper.classList.remove('pouring');
+            stream.classList.add('opacity-0');
+
+            // Rotate the hourglass dynamically by an extra 180 degrees
+            currentRotation += 180;
+            wrapper.style.transform = `rotate(${currentRotation}deg)`;
+
+            // Check if the current cumulative rotation is upside down
+            const isFlipped = (currentRotation / 180) % 2 !== 0;
+
+            status.textContent = "Flowing...";
+            status.classList.add('animate-pulse', 'text-pink-400');
+            status.classList.remove('text-purple-400');
+
+            // Instant preparation of visual levels before transition starts
+            if (!isFlipped) {
+                // Return to Upright: Sand is physically at the top (SVG top-sand)
+                topSand.setAttribute('y', '15');
+                topSand.setAttribute('height', '45');
+                bottomSand.setAttribute('y', '105');
+                bottomSand.setAttribute('height', '0');
+            } else {
+                // Upside Down: Sand is physically at the top (SVG bottom-sand)
+                bottomSand.setAttribute('y', '60');
+                bottomSand.setAttribute('height', '45');
+                topSand.setAttribute('y', '60');
+                topSand.setAttribute('height', '0');
+            }
+
+            // Force browser flow reflow
+            void topSand.offsetWidth;
+
+            // Start pouring stream and sand trickling transition
+            wrapper.classList.add('pouring');
+            stream.classList.remove('opacity-0');
+
+            setTimeout(() => {
+                if (!isFlipped) {
+                    // Drain SVG-top down into SVG-bottom
+                    topSand.setAttribute('y', '60');
+                    topSand.setAttribute('height', '0');
+                    bottomSand.setAttribute('y', '60');
+                    bottomSand.setAttribute('height', '45');
+                } else {
+                    // Drain SVG-bottom down into SVG-top
+                    bottomSand.setAttribute('y', '105');
+                    bottomSand.setAttribute('height', '0');
+                    topSand.setAttribute('y', '15');
+                    topSand.setAttribute('height', '45');
+                }
+            }, 50);
+
+            // Turn off pouring stream once sand completes transition (2.5s)
+            setTimeout(() => {
+                wrapper.classList.remove('pouring');
+                stream.classList.add('opacity-0');
+                status.textContent = "Measured!";
+                status.classList.remove('animate-pulse', 'text-pink-400');
+                status.classList.add('text-purple-400');
+            }, 2550);
+
+            showToast(sign === 1 ? "Duration added" : "Duration subtracted");
+        }
+
+        function resetAS() {
+            const elH = document.getElementById('b-h');
+            const elM = document.getElementById('b-m');
+            const elS = document.getElementById('b-s');
+            const elP = document.getElementById('b-p');
+
+            if(elH) elH.value = ch;
+            if(elM) elM.value = pad(cm);
+            if(elS) elS.value = pad(cs);
+            if(elP) elP.value = cp;
+
+            document.getElementById('d-h').value = 0;
+            document.getElementById('d-m').value = 0;
+            document.getElementById('d-s').value = 0;
+            document.getElementById('as-result').classList.add('hidden');
+            showToast("Shifter defaults reset", "info");
+        }
+
+        // TOOL 3 Core Function: Days Between Two Dates
+        function calcDate() {
+            const startVal = document.getElementById('d-start').value;
+            const endVal = document.getElementById('d-end').value;
+
+            if(!startVal || !endVal) {
+                showToast("Please enter valid dates", "error");
+                return;
+            }
+
+            const s = new Date(startVal);
+            const e = new Date(endVal);
+            
+            if (isNaN(s) || isNaN(e)) return;
+            
+            const days = Math.floor(Math.abs(e - s) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('dd-d').textContent = days + ' days';
+            document.getElementById('dd-w').textContent = (days / 7).toFixed(1) + ' weeks';
+            document.getElementById('dd-mo').textContent = (days / 30.44).toFixed(1) + ' months';
+            document.getElementById('dd-y').textContent = (days / 365.25).toFixed(2) + ' years';
+            
+            document.getElementById('dd-result').classList.remove('hidden');
+            showToast("Calendar duration calculated");
+        }
+
+        // Reset Date Maths
+        function resetDate() {
+            document.getElementById('d-start').value = today;
+            document.getElementById('d-end').value = today;
+            document.getElementById('dd-result').classList.add('hidden');
+            showToast("Dates reset", "info");
+        }
+
+        function setCurrentTime() {
+            const n = new Date();
+            let h = n.getHours();
+            let m = n.getMinutes();
+            let s = n.getSeconds();
+            const p = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            
+            document.getElementById('e-h').value = h;
+            document.getElementById('e-m').value = pad(m);
+            document.getElementById('e-s').value = pad(s);
+            document.getElementById('e-p').value = p;
+            
+            showToast("End Time synchronized to live", "info");
+        }
+
+        function saveStartTime() {
+            const h = document.getElementById('s-h').value;
+            const m = document.getElementById('s-m').value;
+            const s = document.getElementById('s-s').value;
+            const p = document.getElementById('s-p').value;
+            
+            localStorage.setItem('savedTime', JSON.stringify({h, m, s, p}));
+            
+            const banner = document.getElementById('saved-banner');
+            document.getElementById('saved-display').textContent = h + ':' + pad(m) + ':' + pad(s) + ' ' + p;
+            
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            
+            showToast("Starting configuration saved offline");
+        }
+
+        function loadSavedTime() {
+            const data = localStorage.getItem('savedTime');
+            if (!data) return;
+            const t = JSON.parse(data);
+            
+            document.getElementById('s-h').value = t.h;
+            document.getElementById('s-m').value = t.m;
+            document.getElementById('s-s').value = t.s;
+            document.getElementById('s-p').value = t.p;
+            
+            showToast("Saved settings restored successfully");
+        }
+
+        // On window completion load triggers
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+
+            // Set up spotlights for physical tilt cursor effects
+            document.querySelectorAll('.glass-card').forEach(card => {
+                const spotlight = card.querySelector('.spotlight');
+                if (spotlight) {
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        spotlight.style.setProperty('--x', `${x}px`);
+                        spotlight.style.setProperty('--y', `${y}px`);
+                    });
+                }
+            });
+
+            // Restore starting times from offline store if exists
+            const data = localStorage.getItem('savedTime');
+            if (data) {
+                const t = JSON.parse(data);
+                document.getElementById('saved-display').textContent = t.h + ':' + pad(t.m) + ':' + pad(t.s) + ' ' + t.p;
+                const banner = document.getElementById('saved-banner');
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+            }
+        });
+    </script>
 </body>
 </html>
